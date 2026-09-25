@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# Windows 批处理必须 CRLF，否则 cmd.exe 解析 goto / 标签 / 括号块会出错。
+# 另外这些文件**只能是 ASCII**：cmd 按控制台代码页（本机 GBK）解析 .cmd，
+# UTF-8 中文会被当乱码字节，其中可能含 & | > 等控制字符，直接读崩整行。
+[*.{cmd,bat}]
+end_of_line = crlf
+
+[*.{yml,yaml}]
+indent_size = 2

@@ -1,0 +1,50 @@
+name: 功能建议
+description: 想要面板支持别的能力
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请先看一眼[已知的设计取舍](../blob/main/SECURITY.md#已知的设计取舍)与
+        README 的「监测范围」一节——有些看似缺失的能力是有意为之
+        （例如：只统计单一项目、不上报任何对话内容）。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么问题
+      description: 描述场景，不要直接跳到实现方案
+      placeholder: 我有两个项目同时在跑，希望能快速切换而不丢失各自的累计数字。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你设想的做法（可选）
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及哪一块
+      options:
+        - 面板界面 / 交互
+        - Token 统计口径
+        - 团队服务器 / 联网
+        - 安装 / 部署
+        - 文档
+        - 其他
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: 确认
+      options:
+        - label: 我理解本插件的核心承诺是「先选项目、只统计单一项目」，建议不应破坏它
+          required: false
+        - label: 我愿意为这个改动补自检（见 CONTRIBUTING.md）
+          required: false

@@ -1,0 +1,15 @@
+# ============================================================================
+# dsh-team-panel —— DSH bundle patch（挂载声明）
+# ============================================================================
+# DSH 启动时按 bundle 层栈叠加各插件 patch，本文件把团队 Token 面板插入
+# 当前 profile 的配置树。
+#
+# 安装：
+#   dsh plugin --profile desktop add link:D:\Project\DSHplugins\teamplugin
+#   dsh plugin --profile web     add link:D:\Project\DSHplugins\teamplugin
+# 装完必须重启 DSH Desktop（宿主端不会热加载插件）。
+# ============================================================================
+
+- insert:
+    - id: dsh-team-panel
+      name: dsh-team-panel

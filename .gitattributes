@@ -1,0 +1,19 @@
+# 默认：文本文件统一 LF，检出时按平台转换
+* text=auto eol=lf
+
+# Windows 批处理必须 CRLF（LF 行尾会让 cmd.exe 的 goto / 标签解析出错）
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.wav binary
+*.mp3 binary
+*.exe binary
+
+# 锁定文件不参与 diff 统计
+pnpm-lock.yaml linguist-generated=true

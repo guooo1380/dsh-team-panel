@@ -1,0 +1,53 @@
+{
+  "name": "dsh-team-panel",
+  "version": "0.2.0",
+  "description": "DSH 的团队 Token 面板：常驻侧栏底部，先选定一个 DSH 项目再统计其用量，逐人展示已消耗 Token、最后消耗时间与各自所选项目，并用峰/谷圆标标出 DeepSeek 当前计费时段；内置零依赖团队服务器，支持邀请码组队。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "team",
+    "token",
+    "usage",
+    "peak-valley"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "files": [
+    "lib",
+    "scripts",
+    "docs",
+    "cordis.patch.yml",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "node scripts/ci.mjs",
+    "test:offline": "node scripts/entrycheck.mjs && node scripts/mounttest.mjs && node scripts/selftest.mjs && node scripts/plugintest.mjs",
+    "hub": "node lib/team-hub.mjs",
+    "hub:public": "node lib/team-hub.mjs --public",
+    "info": "node scripts/hub-info.mjs",
+    "netcheck": "node scripts/netcheck.mjs",
+    "preview": "node scripts/serve-preview.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guooo1380/dsh-team-panel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guooo1380/dsh-team-panel/issues"
+  },
+  "homepage": "https://github.com/guooo1380/dsh-team-panel#readme"
+}

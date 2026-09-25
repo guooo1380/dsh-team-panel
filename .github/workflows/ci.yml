@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 同一分支的重复推送只保留最新一次
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['20', '24']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # 本项目零依赖，所以没有 install 步骤 —— ci.mjs 会自己起一个临时 hub 做联调。
+      - name: 全量自检
+        run: node scripts/ci.mjs
+
+      # 离线模式单独跑一遍：确保不依赖 hub 的那部分在无网络环境下也能过
+      - name: 离线自检
+        run: node scripts/ci.mjs --offline
+
+  syntax:
+    name: 语法门禁
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 检查所有 JS/MJS 语法
+        run: node scripts/ci.mjs --offline

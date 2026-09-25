@@ -1,0 +1,17 @@
+# 运行时数据（团队服务器数据文件、自测临时目录）
+data/
+# 直接在仓库根目录裸跑 `node lib/team-hub.mjs` 时会落到这里
+/team-hub-data.json
+# 自启脚本生成的启动器
+scripts/_hub-autostart.cmd
+
+# 依赖与日志
+node_modules/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store

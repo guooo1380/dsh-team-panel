@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>dsh-team-panel 侧栏预览</title>
+<style>
+  /* 复刻 DSH 左侧边栏的关键结构（宽度、flex 列、底部 footArea），
+     用来在真浏览器里验证 panel.js 的锚点与窄栏排版。 */
+  html,body{margin:0;background:#EFEFEF}
+  body{display:flex;justify-content:center;padding:0;font-family:system-ui,"Segoe UI","Microsoft YaHei",sans-serif}
+  .sidebar{width:280px;height:700px;background:#FBFBFB;padding:6px 12px;box-sizing:border-box;
+           display:flex;flex-direction:column;border-right:1px solid #ddd}
+  body[data-dark="1"] .sidebar{background:#1E1E1E;border-right-color:#333;color:#E6E6E6}
+  .logoRow{height:60px;flex:none;display:flex;align-items:center;gap:8px;font-weight:600;font-size:17px}
+  .newSession{flex:none;height:34px;border:1px solid #E2E2E2;border-radius:9px;display:flex;align-items:center;
+              justify-content:center;color:#666;font-size:13px;margin-bottom:12px}
+  body[data-dark="1"] .newSession{border-color:#3A3A3A;color:#AAA}
+  .regionArea{flex:1;min-height:0;overflow:hidden;flex-direction:column;display:flex}
+  .groupTitle{flex:none;font-size:12px;color:#8A8A8A;padding:4px 0 6px}
+  .ws{font-size:13px;padding:6px 8px;border-radius:8px;color:#333;margin-bottom:2px}
+  body[data-dark="1"] .ws{color:#DDD}
+  .ws.sel{background:#ECECEC}
+  body[data-dark="1"] .ws.sel{background:#2C2C2C}
+  .footArea{flex:none;display:flex;flex-direction:column}
+  .settingsArea{display:flex;align-items:center;gap:8px;padding:9px 4px;font-size:13px;color:#444}
+  body[data-dark="1"] .settingsArea{color:#DDD}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logoRow">🐳 deepseek HARNESS</div>
+    <div class="newSession">＋ 新会话</div>
+    <div class="regionArea">
+      <div class="groupTitle">工作区</div>
+      <!-- renderSlot("sidebar.workspaces") 的真实产出：display:contents 的锚点 div -->
+      <div data-slot="sidebar.workspaces" style="display:contents">
+        <div class="ws sel">teamplugin</div>
+        <div class="ws">Kunlun_Cup</div>
+        <div class="ws">deepseek_harness</div>
+        <div class="ws">未分组</div>
+      </div>
+    </div>
+    <div class="footArea">
+      <!-- renderSlot("sidebar.footer.action") -->
+      <div data-slot="sidebar.footer.action" style="display:contents"></div>
+      <!-- panel.js 应当插到下面这一行「设置」之前 -->
+      <div class="settingsArea">
+        <div data-slot="sidebar.settings" style="display:contents"><span>⚙ 设置</span></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ===========================================================================
+// 假的宿主接口：让 panel.js 在预览页里能完整跑起来
+// 可用的 URL 参数：
+//   ?open    展开面板
+//   ?dark    深色
+//   ?solo    未加入团队（只看本机）
+//   ?noproj  还没选监测项目（待选择状态）
+//   ?pick    展开 + 切到「选择项目」的中间态
+// ===========================================================================
+(function () {
+  var q = location.search
+  if (q.indexOf('dark') !== -1) document.body.setAttribute('data-dark', '1')
+
+  var open = q.indexOf('open') !== -1 || q.indexOf('noproj') !== -1 || q.indexOf('pick') !== -1
+  var solo = q.indexOf('solo') !== -1
+  var noproj = q.indexOf('noproj') !== -1
+
+  var now = Date.now()
+  var projects = [
+    { path: 'D:\\Project\\DSHplugins\\teamplugin', key: 'd:\\project\\dshplugins\\teamplugin', title: 'teamplugin', sessions: 3, source: 'registry', exists: true },
+    { path: 'D:\\Work\\Kunlun_Cup', key: 'd:\\work\\kunlun_cup', title: 'Kunlun_Cup', sessions: 1, source: 'registry', exists: true },
+    { path: 'D:\\Work\\deepseek_harness', key: 'd:\\work\\deepseek_harness', title: 'deepseek_harness', sessions: 2, source: 'registry', exists: true }
+  ]
+  var selected = noproj ? null : { path: projects[0].path, title: projects[0].title }
+
+  var snapshot = {
+    teamId: 'demo', teamName: '前端三人组', serverTime: now,
+    totals: { tokens: 12480000, cost: 36.2, input: 8000000, cache: 3200000, output: 1280000, members: 3, online: 2, projects: 2 },
+    members: [
+      { id: 'me', name: '小明的 DSH', machine: 'PC-A', project: 'teamplugin', projectPath: 'D:\\Project\\DSHplugins\\teamplugin',
+        monitoring: true, projects: [{ name: 'teamplugin', tokens: 6600000 }], tokens: 6600000, cost: 19.32, lastUsedAt: now - 12000, online: true },
+      { id: 'm2', name: '阿强的 DSH', machine: 'PC-B', project: 'teamplugin', projectPath: 'D:\\Code\\teamplugin',
+        monitoring: true, projects: [{ name: 'teamplugin', tokens: 4200000 }], tokens: 4200000, cost: 12.1, lastUsedAt: now - 1000 * 60 * 47, online: true },
+      { id: 'm3', name: '小美的 DSH', machine: 'PC-C', project: '', projectPath: '',
+        monitoring: false, projects: [], tokens: 0, cost: 0, lastUsedAt: 0, online: false }
+    ],
+    projects: [
+      { name: 'teamplugin', tokens: 10800000, cost: 31.42, members: 2, paths: ['D:\\Project\\DSHplugins\\teamplugin', 'D:\\Code\\teamplugin'], lastUsedAt: now },
+      { name: 'deepseek_harness', tokens: 1680000, cost: 4.78, members: 1, paths: [], lastUsedAt: now }
+    ],
+    peak: { isPeak: false, label: '谷' }
+  }
+
+  var state = {
+    ok: true, version: '0.2.0',
+    self: {
+      memberId: 'me', displayName: '小明的 DSH', machine: 'PC-A',
+      monitoring: !noproj,
+      selectedProject: selected,
+      projects: projects,
+      usage: noproj
+        ? { monitoring: false, tokens: 0, cost: 0, input: 0, cache: 0, output: 0, calls: 0, lastUsedAt: 0 }
+        : { monitoring: true, tokens: 6600000, cost: 19.32, input: 4200000, cache: 1800000, output: 600000, calls: 128, lastUsedAt: now - 12000 }
+    },
+    team: {
+      configured: !solo,
+      hubUrl: solo ? '' : 'https://team.example.com',
+      teamId: solo ? '' : 'demo',
+      teamName: solo ? '' : '前端三人组',
+      inviteCode: solo ? '' : 'MRZRUX7E',
+      online: !solo, error: null, fetchedAt: now,
+      snapshot: solo ? null : snapshot
+    },
+    peak: {
+      isPeak: false, label: '谷', text: '空闲时段', nextChangeAt: Math.floor(now / 1000) + 3600 * 3,
+      peakHours: ['9:00-12:00', '14:00-18:00'], holidays: [], serverTime: Math.floor(now / 1000)
+    },
+    ui: { expanded: open }
+  }
+
+  window.fetch = function (url, opts) {
+    var body = state
+    if (String(url).indexOf('/config') !== -1 || String(url).indexOf('/sync') !== -1) body = { ok: true }
+    if (String(url).indexOf('/project') !== -1) {
+      try {
+        var sent = JSON.parse((opts && opts.body) || '{}')
+        if (sent.path) {
+          var hit = projects.filter(function (p) { return p.path === sent.path })[0]
+          state.self.selectedProject = hit ? { path: hit.path, title: hit.title } : null
+          state.self.monitoring = !!hit
+          state.ui.expanded = true
+        } else {
+          state.self.selectedProject = null
+          state.self.monitoring = false
+        }
+      } catch (e) { /* 预览页里忽略解析失败 */ }
+      body = { ok: true }
+    }
+    return Promise.resolve({
+      ok: true, status: 200,
+      json: function () { return Promise.resolve(body) },
+      text: function () { return Promise.resolve(JSON.stringify(body)) }
+    })
+  }
+})()
+</script>
+<script src="../lib/panel.js"></script>
+</body>
+</html>

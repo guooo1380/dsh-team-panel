@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞（请勿公开）
+    url: https://github.com/guooo1380/dsh-team-panel/security/advisories/new
+    about: 涉及凭据、令牌、越权的问题请走私密报告，见 SECURITY.md
+  - name: 连不上团队服务器
+    url: https://github.com/guooo1380/dsh-team-panel/blob/main/docs/networking.md
+    about: 先按《联网方案》排查，或直接跑 node scripts/netcheck.mjs

@@ -1,0 +1,79 @@
+name: Bug 报告
+description: 面板不显示、Token 统计不对、连不上团队服务器……
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先跑一次自检，多数问题能直接定位：
+
+        ```powershell
+        node scripts\ci.mjs --offline        # 插件本身是否正常
+        node scripts\netcheck.mjs <服务器地址> <邀请码>   # 联网问题
+        ```
+
+        连不上团队服务器时，`netcheck.mjs` 的输出比任何文字描述都有用。
+
+        ⚠️ **安全漏洞请不要在这里报告**，见 [SECURITY.md](../blob/main/SECURITY.md)。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 现象
+      description: 你看到了什么？期望是什么？
+      placeholder: 面板显示「未选择监测项目」，但我明明选过了，刷新后又变回去。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 侧栏面板 ⊕ 展开
+        2. 下拉框选 teamplugin
+        3. 点「开始监测」
+        4. 按 F5
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 插件版本
+      description: 见 `package.json` 的 `version`，或面板展开后设置区底部的成员 ID 旁边
+      placeholder: 0.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH 版本
+      description: 运行 `dsh --version`
+      placeholder: 0.1.5-rc.2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: profile
+    attributes:
+      label: 装在哪个 profile
+      options:
+        - desktop（DSH Desktop 界面）
+        - web（独立 dsh web 服务器）
+        - 两个都装了
+        - 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 自检输出 / 控制台报错
+      description: |
+        `node scripts\ci.mjs --offline` 的结果；以及 `http://127.0.0.1:43120/dsh-team/ping` 的返回；
+        浏览器 F12 控制台的报错（如果有）。
+      render: text
+    validations:
+      required: false
