@@ -15,3 +15,7 @@ pnpm-debug.log*
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 上传 / 发布用的本地脚手架：内含 gh-token.txt 等凭据与体积很大的工具包，
+# 一律不进仓库、不外发（公开仓库里出现 token 等于泄漏）。
+_upload/

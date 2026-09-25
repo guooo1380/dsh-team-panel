@@ -7,6 +7,33 @@
 
 ## [Unreleased]
 
+### 新增
+
+- `scripts/fake-device.mjs` —— **单机模拟「第二台设备」**：用与真插件完全相同的 hub 协议
+  （`/api/join` / `/api/report` / `/api/leave`）冒充一台队友机器，只有一台电脑时也能验证
+  「在线 2/2、两名成员、两个来源的 Token 一起涨」。成员 ID 由名字推导（重复运行只更新同一成员，
+  不产生幽灵成员），默认退出时自动移除自己（`--keep` 可保留）。
+- `scripts/demo-teammate.cmd` —— 双击运行版：只提示输入邀请码，其余参数走默认值
+  （纯 ASCII + CRLF，中文提示由 Node 输出）。
+
+### 文档
+
+- 重写 [docs/two-devices.md](docs/two-devices.md)：改成**超详细操作手册** ——
+  先按「只有一台电脑 / 有两台 / 异地」分档；每步都写清「在哪台机器做 → 点什么敲什么 →
+  正常应该看到什么」，含黑窗口横幅实样、面板挂载位置的示意、加入成功/失败对照表、
+  四条验收判据、按症状排错的表格、术语表与命令速查。README 与 networking.md 均已加指引。
+
+## [0.2.1] - 2026-09-25
+
+### 修复
+
+- **面板轮询会抹掉「已经输入但还没提交」的服务器地址 / 邀请码**。典型症状出现在第二台设备上：
+  先填「团队服务器地址」，再点进「邀请码」框输入 —— 地址框一失焦，下一次轮询（展开时每 3 秒）
+  就用服务器那边还空着的 `hubUrl` 覆盖输入框，地址凭空消失，紧接着「加入团队」只会报
+  `请先填写团队服务器地址`。现在设置区的三个输入框都记录「用户是否已经输入过」，
+  只有点「加入团队」或「保存本机设置」成功后才重新与服务器值对齐。
+  回归用例见 `scripts/mounttest.mjs` 的 `[6]` / `[7]`（仿 DOM 跑真实 `panel.js`）。
+
 ## [0.2.0] - 2026-09-25
 
 ### 新增
@@ -52,6 +79,7 @@
 - 宿主端通过 `ctx.on('session/event')` 采集真实 usage，按官方价目表估算人民币花费。
 - 零依赖团队服务器与邀请码组队。
 
-[Unreleased]: https://github.com/guooo1380/dsh-team-panel/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/guooo1380/dsh-team-panel/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/guooo1380/dsh-team-panel/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/guooo1380/dsh-team-panel/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/guooo1380/dsh-team-panel/releases/tag/v0.1.0

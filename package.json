@@ -1,6 +1,6 @@
 {
   "name": "dsh-team-panel",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "核算团队各项目 Token 用量的 DSH 插件：每人在自己的 DSH 上选定一个要监测的项目，插件只统计该项目的真实用量并汇总到自建团队服务器；面板常驻侧栏底部，逐人展示所选项目、消耗 Token 与最后消耗时间，并用峰/谷圆标标出 DeepSeek 当前计费时段。",
   "keywords": [
     "dsh",

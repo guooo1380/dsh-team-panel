@@ -42,6 +42,10 @@ function checkThat(name, cond, detail) {
 // ---------------------------------------------------------------------------
 // 极简 DOM：只实现 panel.js 真正用到的那部分
 // ---------------------------------------------------------------------------
+// panel.js 通过 dock.querySelectorAll('[data-el]') 拿到所有具名节点；
+// 这里把替身登记进 panelEls，测试就能像用户一样去改 .value、派发 input/click。
+const panelEls = {}
+
 function makeEl(tag) {
   const el = {
     tagName: String(tag || 'div').toUpperCase(),
@@ -52,12 +56,27 @@ function makeEl(tag) {
     _attrs: {},
     _html: '',
     _stubCache: new Map(),
+    _listeners: {},
     textContent: '',
+    value: '',
     disabled: false,
     _rectWidth: 264, // 侧栏常态宽度（264–420px）
     classList: { contains: () => false, add() {}, remove() {} },
-    addEventListener() {},
-    removeEventListener() {},
+    addEventListener(type, fn) {
+      if (!el._listeners[type]) el._listeners[type] = []
+      el._listeners[type].push(fn)
+    },
+    removeEventListener(type, fn) {
+      const list = el._listeners[type] || []
+      const at = list.indexOf(fn)
+      if (at !== -1) list.splice(at, 1)
+    },
+    /** 派发一个事件（只需要事件对象上那几个字段） */
+    dispatch(type) {
+      ;(el._listeners[type] || []).forEach((fn) =>
+        fn({ type, preventDefault() {}, stopPropagation() {} }),
+      )
+    },
     getAttribute(k) {
       return Object.prototype.hasOwnProperty.call(el._attrs, k) ? el._attrs[k] : null
     },
@@ -98,6 +117,7 @@ function makeEl(tag) {
       return names.map((name) => {
         const stub = makeEl('div')
         stub._attrs['data-el'] = name
+        panelEls[name] = stub
         return stub
       })
     },
@@ -183,6 +203,35 @@ function findDock() {
 }
 
 const intervalCallbacks = []
+
+// 服务端状态：可控，用来复现「本机还没保存过地址」的初始情形
+let serverState = {
+  ok: true,
+  version: 'test',
+  self: {},
+  team: { configured: false, hubUrl: '', inviteCode: '' },
+  peak: null,
+  ui: {},
+}
+let lastConfig = null
+function fetchStub(url, init) {
+  const method = (init && init.method) || 'GET'
+  if (method === 'POST' && String(url).includes('/dsh-team/config')) {
+    const body = JSON.parse((init && init.body) || '{}')
+    lastConfig = body
+    // 复刻宿主端的规范化：地址去尾部斜杠、邀请码转大写
+    serverState.team.hubUrl = String(body.hubUrl || '').trim().replace(/\/+$/, '')
+    serverState.team.inviteCode = String(body.inviteCode || '').trim().toUpperCase()
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true }) })
+  }
+  return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(serverState) })
+}
+
+/** 让 panel.js 内部的 Promise 链跑完（刷新 → 重绘） */
+async function flush(times = 8) {
+  for (let i = 0; i < times; i++) await new Promise((resolve) => setImmediate(resolve))
+}
+
 const sandbox = {
   document: documentStub,
   getComputedStyle: () => ({ backgroundColor: 'rgb(251, 251, 251)' }),
@@ -193,12 +242,7 @@ const sandbox = {
   clearInterval: () => {},
   setTimeout: () => 1,
   clearTimeout: () => {},
-  fetch: () =>
-    Promise.resolve({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ ok: true, version: 'test', self: {}, team: {}, peak: null, ui: {} }),
-    }),
+  fetch: fetchStub,
   console,
   matchMedia: () => ({ matches: false, addEventListener() {} }),
   // 显式共享外层的 Date：vm 上下文默认有自己的一份内建对象，
@@ -253,6 +297,47 @@ settingsArea._rectWidth = 280
 intervalCallbacks.forEach((fn) => fn())
 check('重新显示', dock.dataset.hidden, '0')
 check('依然在「设置」行之前', dock.nextElementSibling === settingsArea, true)
+
+// ---------------------------------------------------------------------------
+// 回归：轮询每 3 秒重绘面板，不能把用户「已经输入但还没提交」的内容抹掉。
+// 原始症状（第二台设备）：先填「团队服务器地址」，再点进「邀请码」框输入，
+// 地址框一失焦就被服务器那边还空着的 hubUrl 覆盖 → 地址凭空消失。
+// ---------------------------------------------------------------------------
+console.log('\n[6] 轮询不覆盖用户正在填写的内容')
+await flush() // 让启动时那次 refresh 先跑完，输入框完成首次对齐
+checkThat('已拿到设置区的输入框', !!(panelEls.inHub && panelEls.inInvite && panelEls.inName))
+check('初始服务器地址为空', panelEls.inHub.value, '')
+
+// 用户在第二台设备上：先填地址
+panelEls.inHub.value = 'http://192.168.1.10:7801'
+panelEls.inHub.dispatch('input')
+// 然后点进邀请码框继续填 → 地址框失焦
+documentStub.activeElement = panelEls.inInvite
+panelEls.inInvite.value = 'ubq8x853'
+panelEls.inInvite.dispatch('input')
+check('刚填完地址、还没提交时地址在框里', panelEls.inHub.value, 'http://192.168.1.10:7801')
+
+// 轮询发生（serverState 里 hubUrl 仍然是空的）
+intervalCallbacks.forEach((fn) => fn())
+await flush()
+check('轮询后地址没被抹掉', panelEls.inHub.value, 'http://192.168.1.10:7801')
+check('轮询后邀请码没被抹掉', panelEls.inInvite.value, 'ubq8x853')
+
+console.log('\n[7] 保存成功后输入框重新与服务器对齐')
+documentStub.activeElement = documentStub.body
+panelEls.saveBtn.dispatch('click')
+await flush()
+check('保存时带上了地址', lastConfig && lastConfig.hubUrl, 'http://192.168.1.10:7801')
+check('地址按服务器值回填（去尾部斜杠）', panelEls.inHub.value, 'http://192.168.1.10:7801')
+check('邀请码按服务器值回填（转大写）', panelEls.inInvite.value, 'UBQ8X853')
+
+// 保存后用户再改地址、但这次不保存 → 轮询依旧不许覆盖
+panelEls.inHub.value = 'http://10.0.0.9:7801'
+panelEls.inHub.dispatch('input')
+documentStub.activeElement = panelEls.inInvite
+intervalCallbacks.forEach((fn) => fn())
+await flush()
+check('保存过之后的新改动同样不会被轮询抹掉', panelEls.inHub.value, 'http://10.0.0.9:7801')
 
 console.log(`\n结果：通过 ${pass}，失败 ${fail}\n`)
 process.exit(fail === 0 ? 0 : 1)
