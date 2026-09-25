@@ -108,7 +108,13 @@ scripts\allow-firewall.cmd 7801
 node scripts\hub-info.mjs
 ```
 
-队友：DSH 面板 → ⊕ 展开 → 填「服务器地址 + 邀请码」→ 加入团队。
+队友：DSH 面板 → ⊕ 展开 → 「设置」→ 填「服务器地址 + 邀请码」→ 加入团队。
+
+> **两台机器的逐步教程（含自检与验收）** → [docs/two-devices.md](docs/two-devices.md)
+>
+> **只有一台电脑也能先跑通**：双击 `scripts\start-hub-public.cmd` 起服务器 →
+> 面板「设置」里填 `http://127.0.0.1:7801` + 邀请码；想看「两台设备」的样子再双击
+> `scripts\demo-teammate.cmd`（模拟队友，数字是造的）。详见该文档 A 部分。
 
 ```powershell
 # 队友连不上时，在队友那台机器上跑
@@ -137,6 +143,7 @@ node scripts\netcheck.mjs http://服务器地址:7801 <邀请码>
 
 | 文档 | 内容 |
 |---|---|
+| [docs/two-devices.md](docs/two-devices.md) | **两台设备用插件互连**：从装插件、起服务器、加入、验收到排错的完整步骤 |
 | [docs/networking.md](docs/networking.md) | 联网方案详解：三条路线、Tailscale 逐步操作、排查顺序、国内注意事项 |
 | [docs/architecture.md](docs/architecture.md) | 工作原理：部件、数据流、统计口径、面板挂载点、自检体系 |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | 常见问题：看不到面板、Token 为 0、连不上、乱码…… |
@@ -192,11 +199,13 @@ dsh-team-panel/
 │  ├─ plugintest.mjs      宿主端插件自检
 │  ├─ hub-info.mjs        服务器信息速查（邀请码 / 管理密钥 / 推荐地址）
 │  ├─ netcheck.mjs        联网连通性自检
+│  ├─ fake-device.mjs     模拟「第二台设备」（单机验证连接与显示，数字是造的）
 │  ├─ set-repo.mjs        回填仓库地址（替换 OWNER 占位符）
 │  ├─ serve-preview.mjs   本地静态预览服务
 │  ├─ preview.html        离线预览页
 │  ├─ start-hub.cmd       启动 hub：本机模式
 │  ├─ start-hub-public.cmd  启动 hub：对外监听
+│  ├─ demo-teammate.cmd   双击即用的模拟队友（内部调用 fake-device.mjs）
 │  ├─ install-autostart.cmd  装成开机自启（需管理员）
 │  ├─ uninstall-autostart.cmd  卸载自启
 │  └─ allow-firewall.cmd  放行入站端口（需管理员）
