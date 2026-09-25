@@ -134,6 +134,59 @@ node scripts\hub-info.mjs
 
 ---
 
+## 推送到 GitHub / 从 GitHub 克隆
+
+本机**直连 `github.com` 是不通的**（TCP 握手就超时），必须走代理。
+
+先用 **`proxyprobe`（代理探针）** 确认代理**是不是真的能出去**。
+
+> `proxyprobe` 是一个**独立工具，不随本插件分发**（本插件的运行时零依赖，不掺进这类环境排查工具）。
+> 它放在 `D:\Project\proxyprobe\`，也可以从它的[独立仓库](https://github.com/guooo1380/proxyprobe)获取。
+
+```powershell
+node D:\Project\proxyprobe\proxyprobe.mjs              # 自动找代理（参数 → git 配置 → 环境变量 → 常见端口）
+node D:\Project\proxyprobe\proxyprobe.mjs --json       # 机读输出
+```
+
+它的判定标准是**在 CONNECT 隧道里真的完成 TLS 握手并收到 HTTP 响应**
+—— 这也是它叫 probe（探针）而不是 check 的原因：**主动打一次真实握手去探路**。
+这一点很重要 —— **Clash 类代理会先答应 CONNECT、之后再失败**，
+只看「CONNECT 返回 200」会被骗（实测 1ms 就返回 200，其实根本连不出去）。
+
+**「代理软件开着」不等于「代理真的能出去」**，两种常见假象：
+
+1. 端口在监听、CONNECT 也返回 200，但隧道里出不去 → 换节点 / 检查订阅是否过期
+2. **只开了 TUN 模式** —— 应用往往仍走直连，**端口代理才是可靠路径**
+
+确认代理可用后，让 git 走它：
+
+```powershell
+# 只对当前仓库生效（推荐，推荐用它做一次性推送）
+git config http.proxy  http://127.0.0.1:7993
+git config https.proxy http://127.0.0.1:7993
+
+# 或全局生效
+git config --global http.proxy  http://127.0.0.1:7993
+git config --global https.proxy http://127.0.0.1:7993
+```
+
+> ⚠️ **git 默认不读 Windows 系统代理**。即使代理客户端把系统代理打开了（`ProxyEnable=1`），
+> git 依然会尝试直连并超时 —— 必须像上面这样单独配。
+
+推完想撤掉：
+
+```powershell
+git config --unset http.proxy
+git config --unset https.proxy
+```
+
+### 报 `cannot create standard input pipe for remote-https`
+
+这不是网络问题，是**当前进程被沙箱限制了命名管道**（例如由受限的 agent 会话执行）。
+在你自己的终端里不会有这个限制。
+
+---
+
 ## 平台 / 环境
 
 ### 面板里的中文变成乱码
